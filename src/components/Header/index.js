@@ -98,6 +98,30 @@ const Header = () => {
               About
             </Link>
           </li>
+          <li>
+            <Link to="/blog">
+              <Icon name="book" />
+              Blog
+            </Link>
+          </li>
+          <li>
+            <Link to="/services">
+              <Icon name="coffee" />
+              Services
+            </Link>
+          </li>
+          <li>
+            <Link to="/work">
+              <Icon name="camera" />
+              Work
+            </Link>
+          </li>
+          <li>
+            <Link to="/contact">
+              <Icon name="send" />
+              Contact
+            </Link>
+          </li>
         </ul>
       </nav>
     </header>

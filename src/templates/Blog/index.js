@@ -3,7 +3,7 @@ import { graphql } from 'gatsby';
 import React, { Fragment } from 'react';
 import Helmet from 'react-helmet';
 
-import App from './app';
+import App from '../app';
 
 export const BlogList = (props) => {
   const { data, pageContext } = props;
@@ -58,7 +58,7 @@ export const BlogList = (props) => {
 export const pageQuery = graphql`
   query blogPostsList($skip: Int!, $limit: Int!) {
     posts: allMarkdownRemark(
-      sort: { fields: [fields___slug], order: DESC }
+      sort: { fields: [fields___date], order: DESC }
       filter: { fileAbsolutePath: { regex: "//content/blog/" } }
       limit: $limit
       skip: $skip
@@ -70,6 +70,7 @@ export const pageQuery = graphql`
             date
             slug
             title
+            tags
           }
         }
       }

@@ -3,9 +3,9 @@ import { graphql } from 'gatsby';
 import React, { Fragment } from 'react';
 import Helmet from 'react-helmet';
 
-import { markdown } from '../utils/markdown';
+import { markdown } from '../../utils/markdown';
 
-import App from './app';
+import App from '../app';
 
 export const BlogPost = (props) => {
   const { data } = props;

@@ -1,17 +1,24 @@
+const fs = require('fs');
 const path = require('path');
 
+const invariant = require('invariant');
+const { kebabCase } = require('lodash');
 const moment = require('moment');
+const { singular } = require('pluralize');
 
 const config = require('./config');
 
 const { postsPerPage, useDatesInSlugs } = config;
 
+// Tags used across the site.
+const tags = new Set();
+
 const makeBlogPosts = ({ actions, blogPosts }) => {
   const { createPage } = actions;
 
   blogPosts.edges.sort((postA, postB) => {
-    const dateA = moment.utc(postA.node.frontmatter.date);
-    const dateB = moment.utc(postB.node.frontmatter.date);
+    const dateA = moment.utc(postA.node.fields.date);
+    const dateB = moment.utc(postB.node.fields.date);
 
     if (dateA.isBefore(dateB)) {
       return 1;
@@ -31,16 +38,22 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
 
     createPage({
       path: edge.node.fields.slug,
-      component: path.resolve('src/templates/BlogPost.js'),
+      component: path.resolve('src/templates/Blog/Post.js'),
       context: {
         id: edge.node.id,
         slug: edge.node.fields.slug,
-        nexttitle: nextEdge.node.frontmatter.title,
+        nexttitle: nextEdge.node.fields.title,
         nextslug: `${nextEdge.node.fields.slug}`,
-        prevtitle: prevEdge.node.frontmatter.title,
+        prevtitle: prevEdge.node.fields.title,
         prevslug: `${prevEdge.node.fields.slug}`,
       },
     });
+
+    if (edge.node.fields.tags) {
+      edge.node.fields.tags.forEach((tag) => {
+        tags.add(tag);
+      });
+    }
   });
 
   const numberOfPages = Math.ceil(blogPosts.edges.length / postsPerPage);
@@ -51,7 +64,7 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
       const index = i + 1;
       createPage({
         path: index === 1 ? `/blog` : `/blog/page=${index}`,
-        component: path.resolve('src/templates/BlogList.js'),
+        component: path.resolve('src/templates/Blog/index.js'),
         context: {
           limit: postsPerPage,
           skip: i * postsPerPage,
@@ -61,6 +74,20 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
         },
       });
     });
+};
+
+const makeBlogTags = ({ actions, tags }) => {
+  const { createPage } = actions;
+
+  tags.forEach((tag) => {
+    const slug = `/blog/tags/${kebabCase(tag)}/`;
+
+    createPage({
+      path: slug,
+      component: path.resolve('src/templates/Blog/Tag.js'),
+      context: { slug, tag },
+    });
+  });
 };
 
 const makePages = ({ actions, pages }) => {
@@ -108,13 +135,31 @@ const onCreateNode = ({ actions, node, getNode }) => {
       });
     }
 
+    const rootFolder = parsedFilePath.dir.split('/')[0];
+
+    // "Page" is the default, fallback component if nothing else can be found.
+    let component = 'Page';
+    if (node.frontmatter && node.frontmatter.component) {
+      component = node.frontmatter.component;
+    } else if (rootFolder) {
+      try {
+        fs.statSync(`src/templates/${rootFolder}.js`);
+      } catch (error) {
+        // This means we don't have a template file that matches the name
+        // of the component's root folder, which is fine. We'll use the `Page`
+        // component default defined above.
+        if (error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
+      component = singular(kebabCase(rootFolder));
+      component = `${component.charAt(0).toUpperCase()}${component.slice(1)}`;
+    }
+
     createNodeField({
       node,
       name: 'component',
-      value:
-        node.frontmatter && node.frontmatter.component
-          ? node.frontmatter.component
-          : 'Page',
+      value: component,
     });
 
     // We try to create slugs automatically to reduce the amount of frontmatter
@@ -161,12 +206,27 @@ const onCreateNode = ({ actions, node, getNode }) => {
       value: slug.replace(/\/index$/, '/').replace(/\/{2,}/g, '/'),
     });
 
+    // Create the tags for this post.
+    if (node.frontmatter && node.frontmatter.tags) {
+      invariant(
+        Array.isArray(node.frontmatter.tags),
+        `Tags for file ${parsedFilePath.name} has invalid tags. Tags should be a YAML-list, not a string.`,
+      );
+
+      // Add the array of tags to this node.
+      createNodeField({
+        node,
+        name: 'tags',
+        value: node.frontmatter.tags,
+      });
+    }
+
     // Create fields for every other frontmatter prop; this makes it easier to
     // query for fields instead of needing to know what's in `node.fields` and
     // what's in `node.frontmatter`.
     Object.keys(node.frontmatter)
       .filter((key) => {
-        return ['component', 'date', 'slug'].indexOf(key) === -1;
+        return ['component', 'date', 'slug', 'tags'].indexOf(key) === -1;
       })
       .forEach((key) => {
         createNodeField({
@@ -189,30 +249,26 @@ const createPages = async ({ actions, graphql }) => {
         edges {
           node {
             id
-            frontmatter {
-              author
-              title
-              tags
-            }
             fields {
+              author
               date
               slug
+              title
+              tags
             }
           }
         }
       }
       pages: allMarkdownRemark(
-        filter: { fileAbsolutePath: { regex: "//content/pages/" } }
+        filter: { fileAbsolutePath: { regex: "//content/(?!blog).+?/" } }
       ) {
         edges {
           node {
             id
-            frontmatter {
-              title
-            }
             fields {
               component
               slug
+              title
             }
           }
         }
@@ -225,12 +281,10 @@ const createPages = async ({ actions, graphql }) => {
     throw markdownQueryResult.errors;
   }
 
-  const tagSet = new Set();
-  const categorySet = new Set();
-
   const { blogPosts, pages } = markdownQueryResult.data;
 
   makeBlogPosts({ actions, blogPosts });
+  makeBlogTags({ actions, blogPosts, tags });
   makePages({ actions, pages });
 };
 
