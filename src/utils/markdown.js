@@ -28,7 +28,9 @@ export const markdown = (htmlAst) => {
           delete props.href;
         } else {
           props.as = 'a';
-          props.external = true;
+          if (!props.href.startsWith('mailto:')) {
+            props.external = true;
+          }
         }
 
         return <Link {...props} />;
