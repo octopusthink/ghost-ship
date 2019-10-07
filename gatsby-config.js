@@ -16,6 +16,11 @@ module.exports = {
         ignore: [`**/*\.js`],
       },
     },
-    'gatsby-transformer-remark',
+    {
+      resolve: `gatsby-transformer-remark`,
+      options: {
+        plugins: [`gatsby-remark-smartypants`],
+      },
+    },
   ],
 };
