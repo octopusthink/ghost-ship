@@ -1,22 +1,27 @@
-import Nautilus from '@octopusthink/nautilus';
-import { Link } from 'gatsby';
+import { css, Global } from '@emotion/core';
 import React from 'react';
-import Helmet from 'react-helmet';
+import 'typeface-inter';
 
-import Header from '../components/Header';
+import GhostShipMDX from 'components/GhostShipMDX';
+import SiteHeader from 'components/SiteHeader';
+import SiteFooter from 'components/SiteFooter';
 
 export const App = (props) => {
-  const siteDescription = 'whatever';
   const { children } = props;
+
   return (
-    <Nautilus config={{ LinkComponent: Link }}>
-      <Helmet>
-        <meta name="description" content={siteDescription} />
-        <title>Octopus Think</title>
-      </Helmet>
-      <Header />
-      {children}
-    </Nautilus>
+    <GhostShipMDX>
+      <Global
+        styles={css`
+          /* Place any global CSS styles here. */
+          body {
+          }
+        `}
+      />
+      <SiteHeader />
+      <main id="content">{children}</main>
+      <SiteFooter />
+    </GhostShipMDX>
   );
 };
 

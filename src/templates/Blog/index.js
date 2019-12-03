@@ -1,77 +1,95 @@
-import { Heading, Link, List, Paragraph } from '@octopusthink/nautilus';
+import { Link, List } from '@octopusthink/nautilus';
 import { graphql } from 'gatsby';
 import React, { Fragment } from 'react';
-import Helmet from 'react-helmet';
 
-import App from '../app';
+import PageBody from 'components/PageBody';
+import PageHeader from 'components/PageHeader';
+import PageWrapper from 'components/PageWrapper';
+import PostCard from 'components/PostCard';
+import SEO from 'components/SEO';
+import config from 'data/SiteConfig';
+import App from 'templates/App';
 
 export const BlogList = (props) => {
   const { data, pageContext } = props;
-  const siteDescription = 'foo';
   const { posts } = data;
   const { numberOfPages, currentPage } = pageContext;
+  const pageTitle = config.blogTitle;
+  const pageSummary = config.blogSummary;
+  const description = config.blogDescription;
 
   return (
     <App>
-      <Helmet>
-        <meta name="description" content={siteDescription} />
-        <title>Blog Posts</title>
-      </Helmet>
+      <SEO title={pageTitle} description={description} />
+      <PageWrapper>
+        <PageHeader pageTitle={pageTitle} summary={pageSummary} />
+        <PageBody>
+          {posts.edges.map(({ node }) => {
+            const { fields, timeToRead: readingTime } = node;
+            const { date, slug, summary, title } = fields;
+            return (
+              <Fragment key={slug}>
+                <PostCard
+                  date={date}
+                  readingTime={readingTime}
+                  slug={slug}
+                  summary={summary}
+                  title={title}
+                />
+              </Fragment>
+            );
+          })}
 
-      {posts.edges.map(({ node }) => {
-        const { author, date, slug, title } = node.fields;
-        return (
-          <Fragment key={slug}>
-            <Link to={slug}>
-              <Heading level={2}>{title}</Heading>
-            </Link>
-            <Paragraph>{date}</Paragraph>
-            <Paragraph>By {author}</Paragraph>
-          </Fragment>
-        );
-      })}
+          {numberOfPages > 1 && (
+            <List>
+              {Array(numberOfPages)
+                .fill(null)
+                .map((item, i) => {
+                  const index = i + 1;
+                  const link = index === 1 ? '/blog' : `/blog/page=${index}`;
 
-      {numberOfPages > 1 && (
-        <List>
-          {Array(numberOfPages)
-            .fill(null)
-            .map((item, i) => {
-              const index = i + 1;
-              const link = index === 1 ? '/blog' : `/blog/page=${index}`;
-
-              return (
-                <List.Item key={link}>
-                  {currentPage === index ? (
-                    <span>{index}</span>
-                  ) : (
-                    <Link to={link}>{index}</Link>
-                  )}
-                </List.Item>
-              );
-            })}
-        </List>
-      )}
+                  return (
+                    <List.Item key={link}>
+                      {currentPage === index ? (
+                        <span>{index}</span>
+                      ) : (
+                        <Link to={link}>{index}</Link>
+                      )}
+                    </List.Item>
+                  );
+                })}
+            </List>
+          )}
+        </PageBody>
+      </PageWrapper>
     </App>
   );
 };
 
 export const pageQuery = graphql`
-  query blogPostsList($skip: Int!, $limit: Int!) {
-    posts: allMarkdownRemark(
+  query blogPostsList($skip: Int!, $limit: Int!, $nowTimestamp: Int!) {
+    posts: allMdx(
       sort: { fields: [fields___date], order: DESC }
-      filter: { fileAbsolutePath: { regex: "//content/blog/" } }
+      filter: {
+        fileAbsolutePath: { regex: "//content/blog/" }
+        fields: { timestamp: { lte: $nowTimestamp } }
+      }
       limit: $limit
       skip: $skip
     ) {
       edges {
         node {
           fields {
-            author
             date
             slug
+            summary
             title
-            tags
+            tags {
+              name
+              summary
+            }
           }
+          timeToRead
         }
       }
     }

@@ -1,57 +1,97 @@
-import { Heading, Link, Paragraph } from '@octopusthink/nautilus';
 import { graphql } from 'gatsby';
 import React, { Fragment } from 'react';
-import Helmet from 'react-helmet';
 
-import App from '../app';
+import Divider from 'components/Divider';
+import PageBody from 'components/PageBody';
+import PageHeader from 'components/PageHeader';
+import PageWrapper from 'components/PageWrapper';
+import PostCard from 'components/PostCard';
+import SEO from 'components/SEO';
+import App from 'templates/App';
 
 export const BlogTags = (props) => {
-  const { data } = props;
-  const siteDescription = 'foo';
-  const { posts } = data;
+  const { data, pageContext } = props;
+  const { posts, tag } = data;
+
+  let pageSummary;
+  let pageTitle;
+  if (tag.edges.length > 0) {
+    const tagData = tag.edges[0].node;
+    pageTitle = `Posts tagged #${tagData.name}`;
+    pageSummary = tagData.summary;
+  } else {
+    pageTitle = `Posts tagged #${pageContext.tag}`;
+    pageSummary = `An archive of blog posts tagged #${pageContext.tag}`;
+  }
 
   return (
     <App>
-      <Helmet>
-        <meta name="description" content={siteDescription} />
-        <title>Tag</title>
-      </Helmet>
+      <SEO title={pageTitle} description={pageSummary} />
+      <PageWrapper>
+        <PageHeader pageTitle={pageTitle} summary={pageSummary} />
+        <PageBody>
+          {posts.edges.map(({ node }) => {
+            const { date, readingTime, slug, summary, title } = node.fields;
 
-      {posts.edges.map(({ node }) => {
-        const { author, date, slug, title } = node.fields;
-
-        return (
-          <Fragment key={slug}>
-            <Link to={slug}>
-              <Heading level={2}>{title}</Heading>
-            </Link>
-            <Paragraph>{date}</Paragraph>
-            <Paragraph>By {author}</Paragraph>
-          </Fragment>
-        );
-      })}
+            return (
+              <Fragment key={slug}>
+                <PostCard
+                  date={date}
+                  readingTime={readingTime}
+                  slug={slug}
+                  summary={summary}
+                  title={title}
+                />
+              </Fragment>
+            );
+          })}
+        </PageBody>
+        <Divider light />
+      </PageWrapper>
     </App>
   );
 };
 
 export const pageQuery = graphql`
-  query blogPostsTags($tag: String!) {
-    posts: allMarkdownRemark(
+  query($tagId: String!, $nowTimestamp: Int!) {
+    posts: allMdx(
       sort: { fields: [fields___date], order: DESC }
       filter: {
         fileAbsolutePath: { regex: "//content/blog/" }
-        fields: { tags: { eq: $tag } }
+        fields: { timestamp: { lte: $nowTimestamp }, tags: { elemMatch: { id: { eq: $tagId } } } }
       }
     ) {
       edges {
         node {
           fields {
-            author
+            authors {
+              bio
+              id
+              name
+            }
             date
+            # readingTime {
+            #   text
+            # }
             slug
+            summary
             title
-            tags
+            tags {
+              id
+              name
+              summary
+            }
           }
+          timeToRead
+        }
+      }
+    }
+    tag: allTagsYaml(filter: { id: { eq: $tagId } }) {
+      edges {
+        node {
+          id
+          summary
+          name
         }
       }
     }
