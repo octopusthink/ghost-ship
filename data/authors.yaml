@@ -1,0 +1,6 @@
+- id: author
+  name: First Author
+  title: I write things
+  avatar: /photos/sarah-portrait.jpg
+  alt: Alt text for avatar.
+  bio: Your bio.

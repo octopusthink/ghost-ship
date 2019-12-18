@@ -1,22 +1,37 @@
 const fs = require('fs');
 const path = require('path');
 
-const invariant = require('invariant');
 const { kebabCase } = require('lodash');
 const moment = require('moment');
 const { singular } = require('pluralize');
 
-const config = require('./config');
+const siteConfig = require('./data/SiteConfig');
+const { enableBlog, enablePortfolio } = require('./src/utils/settings');
 
-const { postsPerPage, useDatesInSlugs } = config;
+const projectPath = path.resolve(fs.realpathSync(process.cwd()), '.');
+const srcPath = path.resolve(fs.realpathSync(process.cwd()), 'src');
+
+const { postsPerPage, useDatesInSlugs } = siteConfig;
+
+// Gatsby Integers only support 32-bit integers, so this uses that as the
+// maximum timestamp value. Sort of a hack, but using `Number.MAX_SAFE_INTEGER`
+// will throw errors.
+const nowTimestamp =
+  process.env.NODE_ENV === 'production' || process.env.HIDE_FUTURE_POSTS
+    ? parseInt(moment.utc().format('X'), 10)
+    : 2147483647;
 
 // Tags used across the site.
-const tags = new Set();
+const siteTags = new Set();
 
 const makeBlogPosts = ({ actions, blogPosts }) => {
   const { createPage } = actions;
 
-  blogPosts.edges.sort((postA, postB) => {
+  const postsToPublish = blogPosts.edges.filter((edge) => {
+    return edge.node.fields.timestamp <= nowTimestamp;
+  });
+
+  postsToPublish.sort((postA, postB) => {
     const dateA = moment.utc(postA.node.fields.date);
     const dateB = moment.utc(postB.node.fields.date);
 
@@ -30,33 +45,37 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
     return 0;
   });
 
-  blogPosts.edges.forEach((edge, index) => {
-    const nextID = index + 1 < blogPosts.edges.length ? index + 1 : 0;
-    const prevID = index - 1 >= 0 ? index - 1 : blogPosts.edges.length - 1;
-    const nextEdge = blogPosts.edges[nextID];
-    const prevEdge = blogPosts.edges[prevID];
+  postsToPublish.forEach((edge, index) => {
+    const nextID = index + 1 < postsToPublish.length ? index + 1 : 0;
+    const prevID = index - 1 >= 0 ? index - 1 : postsToPublish.length - 1;
+    const nextEdge = postsToPublish[nextID];
+    const prevEdge = postsToPublish[prevID];
 
-    createPage({
-      path: edge.node.fields.slug,
-      component: path.resolve('src/templates/Blog/Post.js'),
-      context: {
-        id: edge.node.id,
-        slug: edge.node.fields.slug,
-        nexttitle: nextEdge.node.fields.title,
-        nextslug: `${nextEdge.node.fields.slug}`,
-        prevtitle: prevEdge.node.fields.title,
-        prevslug: `${prevEdge.node.fields.slug}`,
-      },
-    });
-
-    if (edge.node.fields.tags) {
-      edge.node.fields.tags.forEach((tag) => {
-        tags.add(tag);
+    // Don't create blog posts in the future when building for production.
+    if (edge.node.fields.timestamp <= nowTimestamp) {
+      createPage({
+        path: edge.node.fields.slug,
+        component: path.resolve('src/templates/Blog/Post.js'),
+        context: {
+          nowTimestamp,
+          id: edge.node.id,
+          slug: edge.node.fields.slug,
+          nexttitle: nextEdge.node.fields.title,
+          nextslug: `${nextEdge.node.fields.slug}`,
+          prevtitle: prevEdge.node.fields.title,
+          prevslug: `${prevEdge.node.fields.slug}`,
+        },
       });
+
+      if (edge.node.fields.tags) {
+        edge.node.fields.tags.forEach((tag) => {
+          siteTags.add(tag);
+        });
+      }
     }
   });
 
-  const numberOfPages = Math.ceil(blogPosts.edges.length / postsPerPage);
+  const numberOfPages = Math.ceil(postsToPublish.length / postsPerPage);
 
   Array(numberOfPages)
     .fill(null)
@@ -66,6 +85,7 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
         path: index === 1 ? `/blog` : `/blog/page=${index}`,
         component: path.resolve('src/templates/Blog/index.js'),
         context: {
+          nowTimestamp,
           limit: postsPerPage,
           skip: i * postsPerPage,
           currentPage: index,
@@ -76,30 +96,46 @@ const makeBlogPosts = ({ actions, blogPosts }) => {
     });
 };
 
+// Make pages for each blog tag.
 const makeBlogTags = ({ actions, tags }) => {
   const { createPage } = actions;
 
   tags.forEach((tag) => {
-    const slug = `/blog/tags/${kebabCase(tag)}/`;
+    const slug = `/blog/tags/${tag.id}/`;
 
     createPage({
       path: slug,
       component: path.resolve('src/templates/Blog/Tag.js'),
-      context: { slug, tag },
+      context: { nowTimestamp, slug, tagId: tag.id },
     });
   });
 };
 
+const makePortfolioPages = ({ actions, portfolioItems }) => {
+  const { createPage } = actions;
+
+  portfolioItems.edges.forEach((edge) => {
+    // Create pages for each of the portfolio items.
+    createPage({
+      path: edge.node.fields.slug,
+      component: path.resolve('src/templates/Portfolio/Single.js'),
+      context: {
+        id: edge.node.id,
+        slug: edge.node.fields.slug,
+      },
+    });
+  });
+};
+
+// Create pages of any other type.
 const makePages = ({ actions, pages }) => {
   const { createPage } = actions;
 
   if (pages) {
-    pages.edges.forEach((edge, index) => {
+    pages.edges.forEach((edge) => {
       createPage({
         path: edge.node.fields.slug,
-        component: path.resolve(
-          `src/templates/${edge.node.fields.component}.js`,
-        ),
+        component: path.resolve(`src/templates/${edge.node.fields.component}.js`),
         context: {
           id: edge.node.id,
           slug: edge.node.fields.slug,
@@ -113,7 +149,7 @@ const onCreateNode = ({ actions, node, getNode }) => {
   const { createNodeField } = actions;
   let slug;
 
-  if (node.internal.type === 'MarkdownRemark') {
+  if (['MarkdownRemark', 'Mdx'].includes(node.internal.type)) {
     const fileNode = getNode(node.parent);
     const parsedFilePath = path.parse(fileNode.relativePath);
 
@@ -125,6 +161,7 @@ const onCreateNode = ({ actions, node, getNode }) => {
       date = moment.utc(dateMatch[1]);
 
       if (!date || !date.isValid) {
+        // eslint-disable-next-line no-console
         console.warn(`WARNING: Invalid date for ${parsedFilePath.name}`);
       }
 
@@ -132,6 +169,18 @@ const onCreateNode = ({ actions, node, getNode }) => {
         node,
         name: 'date',
         value: date.toISOString(),
+      });
+
+      createNodeField({
+        node,
+        name: 'timestamp',
+        value: parseInt(date.format('X'), 10),
+      });
+
+      createNodeField({
+        node,
+        name: 'updated',
+        value: node.frontmatter.updated ? node.frontmatter.updated : null,
       });
     }
 
@@ -178,24 +227,19 @@ const onCreateNode = ({ actions, node, getNode }) => {
     const fileName = date ? dateMatch[2] : parsedFilePath.name;
 
     if (parsedFilePath.dir.match(/^pages/)) {
-      const pathWithoutPagesFolder = parsedFilePath.dir.replace(
-        /^pages\/?/,
-        '',
-      );
+      const pathWithoutPagesFolder = parsedFilePath.dir.replace(/^pages\/?/, '');
 
       if (node.frontmatter && node.frontmatter.slug) {
         slug = `/${pathWithoutPagesFolder}/${node.frontmatter.slug}`;
       } else {
         slug = `/${pathWithoutPagesFolder}/${fileName}`;
       }
+    } else if (node.frontmatter && node.frontmatter.slug) {
+      slug = `/${parsedFilePath.dir}/${datePrefix}${node.frontmatter.slug}`;
+    } else if (parsedFilePath.name !== 'index' && parsedFilePath.dir !== '') {
+      slug = `/${parsedFilePath.dir}/${datePrefix}${fileName}`;
     } else {
-      if (node.frontmatter && node.frontmatter.slug) {
-        slug = `/${parsedFilePath.dir}/${datePrefix}${node.frontmatter.slug}`;
-      } else if (parsedFilePath.name !== 'index' && parsedFilePath.dir !== '') {
-        slug = `/${parsedFilePath.dir}/${datePrefix}${fileName}`;
-      } else {
-        slug = `/${parsedFilePath.dir}`;
-      }
+      slug = `/${parsedFilePath.dir}`;
     }
 
     // Create the slug, changing `/index` to `/` and removing any double
@@ -206,27 +250,12 @@ const onCreateNode = ({ actions, node, getNode }) => {
       value: slug.replace(/\/index$/, '/').replace(/\/{2,}/g, '/'),
     });
 
-    // Create the tags for this post.
-    if (node.frontmatter && node.frontmatter.tags) {
-      invariant(
-        Array.isArray(node.frontmatter.tags),
-        `Tags for file ${parsedFilePath.name} has invalid tags. Tags should be a YAML-list, not a string.`,
-      );
-
-      // Add the array of tags to this node.
-      createNodeField({
-        node,
-        name: 'tags',
-        value: node.frontmatter.tags,
-      });
-    }
-
     // Create fields for every other frontmatter prop; this makes it easier to
     // query for fields instead of needing to know what's in `node.fields` and
     // what's in `node.frontmatter`.
     Object.keys(node.frontmatter)
       .filter((key) => {
-        return ['component', 'date', 'slug', 'tags'].indexOf(key) === -1;
+        return ['component', 'date', 'slug'].indexOf(key) === -1;
       })
       .forEach((key) => {
         createNodeField({
@@ -239,29 +268,58 @@ const onCreateNode = ({ actions, node, getNode }) => {
 };
 
 const createPages = async ({ actions, graphql }) => {
-  const { createPage } = actions;
-
   const markdownQueryResult = await graphql(`
     query {
-      blogPosts: allMarkdownRemark(
-        filter: { fileAbsolutePath: { regex: "//content/blog/" } }
-      ) {
+      ${
+        enableBlog
+          ? `blogPosts: allMdx(filter: {
+        fileAbsolutePath: { regex: "//content/blog/" }
+        fields: { timestamp: { lte: ${nowTimestamp} } }
+      }) {
         edges {
           node {
             id
             fields {
-              author
+              authors {
+                id
+                avatar
+                name
+                bio
+              }
               date
               slug
+              timestamp
               title
-              tags
+              tags {
+                id
+                name
+                summary
+              }
+              updated
             }
           }
         }
+      }`
+          : ''
       }
-      pages: allMarkdownRemark(
-        filter: { fileAbsolutePath: { regex: "//content/(?!blog).+?/" } }
-      ) {
+      ${
+        enablePortfolio
+          ? `portfolioItems: allMdx(filter: {
+        fileAbsolutePath: { regex: "//content/portfolio/" }
+      }) {
+        edges {
+          node {
+            id
+            fields {
+              slug
+              title
+            }
+          }
+        }
+      }`
+          : ''
+      }
+      pages: allMdx(filter: { fileAbsolutePath: { regex: "//content/(?!blog|portfolio).+?/" } }) {
         edges {
           node {
             id
@@ -277,15 +335,45 @@ const createPages = async ({ actions, graphql }) => {
   `);
 
   if (markdownQueryResult.errors) {
+    // eslint-disable-next-line no-console
     console.error(markdownQueryResult.errors);
     throw markdownQueryResult.errors;
   }
 
-  const { blogPosts, pages } = markdownQueryResult.data;
+  const { blogPosts, pages, portfolioItems } = markdownQueryResult.data;
 
-  makeBlogPosts({ actions, blogPosts });
-  makeBlogTags({ actions, blogPosts, tags });
+  // If we're running a blog, create the blog post pages.
+  if (enableBlog) {
+    makeBlogPosts({ actions, blogPosts });
+    makeBlogTags({
+      actions,
+      blogPosts,
+      tags: siteTags,
+    });
+  }
+
+  // Create portfolio pages, if they're enabled.
+  if (enablePortfolio) {
+    makePortfolioPages({
+      actions,
+      portfolioItems,
+    });
+  }
+
   makePages({ actions, pages });
 };
 
-module.exports = { createPages, onCreateNode };
+const onCreateWebpackConfig = ({ actions }) => {
+  actions.setWebpackConfig({
+    node: {
+      fs: 'empty',
+      path: 'empty',
+    },
+    resolve: {
+      extensions: ['.mjs', '.jsx', '.js', '.json'],
+      modules: [srcPath, projectPath, 'node_modules'],
+    },
+  });
+};
+
+module.exports = { createPages, onCreateNode, onCreateWebpackConfig };
