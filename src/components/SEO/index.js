@@ -12,19 +12,17 @@ import { useStaticQuery, graphql } from 'gatsby';
 
 const SEO = (props) => {
   const { description, homepage, lang, meta, title } = props;
-  const { site } = useStaticQuery(
-    graphql`
-      query {
-        site {
-          siteMetadata {
-            title
-            description
-            author
-          }
+  const { site } = useStaticQuery(graphql`
+    query {
+      site {
+        siteMetadata {
+          title
+          description
+          author
         }
       }
-    `,
-  );
+    }
+  `);
 
   const metaDescription = description || site.siteMetadata.description;
   let pageTitle = `${title} · ${site.siteMetadata.title}`;
