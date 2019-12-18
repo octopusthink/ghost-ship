@@ -6,18 +6,12 @@ const moment = require('moment');
 const { singular } = require('pluralize');
 
 const siteConfig = require('./data/SiteConfig');
+const { enableBlog, enablePortfolio } = require('./src/utils/settings');
 
 const projectPath = path.resolve(fs.realpathSync(process.cwd()), '.');
 const srcPath = path.resolve(fs.realpathSync(process.cwd()), 'src');
 
-const {
-  enableBlogAuthors,
-  enableBlog,
-  enableBlogTags,
-  enablePortfolio,
-  postsPerPage,
-  useDatesInSlugs,
-} = siteConfig;
+const { postsPerPage, useDatesInSlugs } = siteConfig;
 
 // Gatsby Integers only support 32-bit integers, so this uses that as the
 // maximum timestamp value. Sort of a hack, but using `Number.MAX_SAFE_INTEGER`
@@ -276,7 +270,9 @@ const onCreateNode = ({ actions, node, getNode }) => {
 const createPages = async ({ actions, graphql }) => {
   const markdownQueryResult = await graphql(`
     query {
-      blogPosts: allMdx(filter: {
+      ${
+        enableBlog
+          ? `blogPosts: allMdx(filter: {
         fileAbsolutePath: { regex: "//content/blog/" }
         fields: { timestamp: { lte: ${nowTimestamp} } }
       }) {
@@ -303,8 +299,12 @@ const createPages = async ({ actions, graphql }) => {
             }
           }
         }
+      }`
+          : ''
       }
-      portfolioItems: allMdx(filter: {
+      ${
+        enablePortfolio
+          ? `portfolioItems: allMdx(filter: {
         fileAbsolutePath: { regex: "//content/portfolio/" }
       }) {
         edges {
@@ -316,6 +316,8 @@ const createPages = async ({ actions, graphql }) => {
             }
           }
         }
+      }`
+          : ''
       }
       pages: allMdx(filter: { fileAbsolutePath: { regex: "//content/(?!blog|portfolio).+?/" } }) {
         edges {
@@ -363,6 +365,10 @@ const createPages = async ({ actions, graphql }) => {
 
 const onCreateWebpackConfig = ({ actions }) => {
   actions.setWebpackConfig({
+    node: {
+      fs: 'empty',
+      path: 'empty',
+    },
     resolve: {
       extensions: ['.mjs', '.jsx', '.js', '.json'],
       modules: [srcPath, projectPath, 'node_modules'],

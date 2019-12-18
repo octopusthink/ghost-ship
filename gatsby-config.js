@@ -11,7 +11,9 @@ let feedSettings;
 let matomoSettings;
 const mapping = {};
 
-if (config.enableBlog) {
+const { enableBlog } = require('./src/utils/settings');
+
+if (enableBlog) {
   feedSettings = {
     resolve: 'gatsby-plugin-feed',
     options: {

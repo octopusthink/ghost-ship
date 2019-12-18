@@ -10,6 +10,9 @@
     "clean": "rm -rf public && rm -rf .cache",
     "format": "prettier --write **/**/*.{js,jsx}",
     "lint": "eslint .",
+    "remove:all": "npm run remove:blog && npm run remove:portfolio",
+    "remove:blog": "rm -rf src/content/blog && rm -rf src/templates/Blog",
+    "remove:portfolio": "rm -rf src/content/portfolio && rm -rf src/templates/Portfolio",
     "start": "gatsby develop",
     "serve": "gatsby serve",
     "test": "echo 'No tests yet! (See: https://gatsby.dev/unit-testing/)'"

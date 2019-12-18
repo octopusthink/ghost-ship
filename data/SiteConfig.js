@@ -25,9 +25,7 @@ const config = {
 
   // Ghost Ship Settings
   enableBlogAuthors: true,
-  enableBlog: true,
   enableBlogTags: true,
-  enablePortfolio: true,
 
   blogTitle: 'Our Blog',
   blogDescription: 'The blog of Ghost Ship, famed for its speed.',
