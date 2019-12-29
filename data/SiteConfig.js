@@ -23,16 +23,21 @@ const config = {
   // Copyright string for the footer of the website and RSS feed.
   copyright: `Copyright © ${new Date().getFullYear()}. Your name here.`,
 
-  // Ghost Ship Settings
-  enableBlogAuthors: true,
-  enableBlogTags: true,
-
+  // BLOG SETTINGS
   blogTitle: 'Our Blog',
   blogDescription: 'The blog of Ghost Ship, famed for its speed.',
   blogSummary:
     'AKA our blog, in which we talk about spooky ships and fast websites. It is quite the good time!',
-
   dateFormat: 'D MMMM YYYY',
+  enableBlogAuthors: true,
+  enableBlogTags: true,
+  postsPerPage: 10,
+  // When enabled this prefixes slugs with `date` data for the node, if set.
+  // `useDatesInSlugs: false` -> `/blog/my-post/`
+  // `useDatesInSlugs: true`  -> `/blog/2019-05-09-my-post/`
+  useDatesInSlugs: true,
+
+  // MATAMO TRACKING OPTIONS
   matomoOptions: {
     siteId: null,
     matomoUrl: 'https://your.matomoserver.com',
@@ -41,14 +46,15 @@ const config = {
     // Removes the need for cookie notices and is less creepy! :-)
     disableCookies: true,
   },
+
+  // VISUAL SETTINGS
   // Replace this with a Nautilus Theme object.
   // See: https://nautilus.octopusthink.com
   nautilusTheme: null, // require('./theme'),
-  postsPerPage: 10,
-  // When enabled this prefixes slugs with `date` data for the node, if set.
-  // `useDatesInSlugs: false` -> `/blog/my-post/`
-  // `useDatesInSlugs: true`  -> `/blog/2019-05-09-my-post/`
-  useDatesInSlugs: true,
+  // Site width is total width of your site including headers, footers, and backgrounds, expressed in a value CSS understands.
+  siteWidth: '128rem',
+  // Content width is the width of content (ie, paragraphs and blocks of text), expressed in a CSS value.
+  contentWidth: '64rem',
 };
 
 // Make sure pathPrefix is empty if not needed
