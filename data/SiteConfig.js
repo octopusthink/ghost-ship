@@ -23,7 +23,7 @@ const config = {
   // Copyright string for the footer of the website and RSS feed.
   copyright: `Copyright © ${new Date().getFullYear()}. Your name here.`,
 
-  /*------------ Blog Settings ------------ */
+  /* ------------ Blog Settings ------------ */
   blogTitle: 'Our Blog',
   blogDescription: 'The blog of Ghost Ship, famed for its speed.',
   blogSummary:
@@ -37,7 +37,7 @@ const config = {
   // `useDatesInSlugs: true`  -> `/blog/2019-05-09-my-post/`
   useDatesInSlugs: true,
 
-/*------------ Matamo Tracking Settings ------------ */
+  /* ------------ Matamo Tracking Settings ------------ */
   matomoOptions: {
     siteId: null,
     matomoUrl: 'https://your.matomoserver.com',
@@ -47,7 +47,7 @@ const config = {
     disableCookies: true,
   },
 
-/*------------ Visual Appearance Settings ------------ */
+  /* ------------ Visual Appearance Settings ------------ */
   // Replace this with a Nautilus Theme object.
   // See: https://nautilus.octopusthink.com
   nautilusTheme: null, // require('./theme'),
@@ -57,7 +57,7 @@ const config = {
   contentWidth: '64rem',
 };
 
-/*------------ You shouldn't need to edit this! ------------ */
+/* ------------ You shouldn't need to edit this! ------------ */
 // Make sure pathPrefix is empty if not needed
 if (config.pathPrefix === '/') {
   config.pathPrefix = '';
