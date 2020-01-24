@@ -24,7 +24,29 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
 
 3.  **Open the source code and start editing!**
 
-    Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)!
+    Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)! 
+
+
+## Build your site
+
+Here are a few things we recommend starting with:
+
+### Configure your settings.
+    Set your site's configurations by editing your `data/SiteConfig.js` file.
+
+    When you make changes, you'll need to restart the server to see these changes reflected.
+
+### Add logos and favicons.
+
+### Create a custom theme.
+
+### Configure content types.
+
+### Add some content.
+
+### Modify your CSS.
+
+### Launch your site!
 
 ## License
 
