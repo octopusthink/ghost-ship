@@ -27,7 +27,7 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
     Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)! 
 
 
-## Build your site
+## 🚧 Build your site
 
 Here are a few things we recommend starting with:
 
@@ -60,6 +60,18 @@ import theme from 'data/theme';
 ### Modify your CSS.
 
 ### Launch your site!
+
+## ✨What's next?
+
+### Using the design system
+
+octopusthink.com uses the [Nautilus](https://nautilus.octopusthink.com) design system under the hood. Since Nautilus is still very much under development, it's pulling from the latest changes made to the `master` GitHub branch, rather than the published version.
+
+To pull the latest changes, uninstall and reinstall the Nautilus dependency:
+
+```bash
+npm uninstall nautilus && npm install --save octopusthink/nautilus
+```
 
 ## License
 
