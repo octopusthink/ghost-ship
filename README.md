@@ -32,13 +32,26 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
 Here are a few things we recommend starting with:
 
 ### Configure your settings.
-    Set your site's configurations by editing your `data/SiteConfig.js` file.
 
-    When you make changes, you'll need to restart the server to see these changes reflected.
+Set your site's configurations by editing your `data/SiteConfig.js` file.
+
+When you make changes, you'll need to restart the server to see these changes reflected.
 
 ### Add logos and favicons.
 
 ### Create a custom theme.
+
+To add a custom theme, first create a [Nautilus](https://nautilus.octopusthink.com/) theme file. (Documentation for themeing is coming soon, but for now copying the [default theme](https://github.com/octopusthink/nautilus/blob/master/src/themes/nautilus/index.js) file will do the trick, and modify values as needed.) You can put it anywhere you like, but we recommend `data/theme.js`. 
+
+Then, open up `components/NautilusWrapper`, import the theme, and pass it as a prop to Nautilus:
+
+```jsx
+import theme from 'data/theme';
+
+<Nautilus theme={theme}>
+```
+
+
 
 ### Configure content types.
 
