@@ -14,7 +14,7 @@ const config = {
   siteUrl: 'https://yourdomain.com',
   // Prefixes all links. For cases when deployed to example.github.io/gatsby-advanced-starter/.
   pathPrefix: '/',
-  // Website description used for RSS feeds/meta description tag.
+  // Website description used for RSS feeds/meta description tag. 170 char.
   siteDescription:
     'Ghost ship is a Gatsby starter that offers blogging, optimised images, a portfolio, and more.',
   // Path to the RSS file.
@@ -22,12 +22,17 @@ const config = {
   twitter: '@tweettweet',
   // Copyright string for the footer of the website and RSS feed.
   copyright: `Copyright © ${new Date().getFullYear()}. Your name here.`,
+  // Fallback image used when sharing to social sites.
+  defaultImage: '/og-images/default.png',
+  imageHeight: '630',
+  imageWidth: '1200',
 
   /* ------------ Blog Settings ------------ */
   blogTitle: 'Our Blog',
   blogDescription: 'The blog of Ghost Ship, famed for its speed.',
   blogSummary:
     'AKA our blog, in which we talk about spooky ships and fast websites. It is quite the good time!',
+  blogUrl: '/blog/',
   dateFormat: 'D MMMM YYYY',
   enableBlogAuthors: true,
   enableBlogTags: true,

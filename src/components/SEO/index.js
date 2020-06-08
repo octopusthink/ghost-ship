@@ -10,51 +10,131 @@ import React from 'react';
 import Helmet from 'react-helmet';
 import { useStaticQuery, graphql } from 'gatsby';
 
-const SEO = (props) => {
-  const { description, homepage, lang, meta, title } = props;
-  const { site } = useStaticQuery(graphql`
-    query {
-      site {
-        siteMetadata {
-          title
-          description
-          author
+const outputIfSet = (valueToCheck, objectToOutput) => {
+  if (!valueToCheck) {
+    return {};
+  }
+
+  return { ...objectToOutput };
+};
+
+function SEO(props) {
+  const {
+    article,
+    canonical,
+    description,
+    homepage,
+    image,
+    lang,
+    meta,
+    modifiedTime,
+    pathname,
+    publishedTime,
+    tags,
+    title,
+  } = props;
+  const { site } = useStaticQuery(
+    graphql`
+      query {
+        site {
+          siteMetadata {
+            author
+            defaultImage
+            description
+            imageHeight
+            imageWidth
+            language
+            siteUrl
+            title
+          }
         }
       }
-    }
-  `);
+    `,
+  );
 
-  const metaDescription = description || site.siteMetadata.description;
-  let pageTitle = `${title} · ${site.siteMetadata.title}`;
+  // Inverse the order of site & page titles on homepage only.
+  // TODO: Try to use Helmet's titleTemplate and/or automatic detection.
+  let pageDisplayTitle = `${title} · ${site.siteMetadata.title}`;
   if (homepage) {
-    pageTitle = `${site.siteMetadata.title} · ${title}`;
+    pageDisplayTitle = `${site.siteMetadata.title} · ${title}`;
   }
+
+  const seo = {
+    description: description || site.siteMetadata.description,
+    lang: lang || site.siteMetadata.language,
+    image: `${site.siteMetadata.siteUrl}${image || site.siteMetadata.defaultImage}`,
+    imageHeight: site.siteMetadata.imageHeight,
+    imageWidth: site.siteMetadata.imageWidth,
+    modifiedTime,
+    publishedTime,
+    siteName: site.siteMetadata.title,
+    tags,
+    title,
+    type: article ? `article` : `website`,
+    url: canonical || `${site.siteMetadata.siteUrl}${pathname || '/'}`,
+  };
 
   return (
     <Helmet
       htmlAttributes={{
-        lang,
+        lang: seo.lang,
       }}
       meta={[
         {
           name: `description`,
-          content: metaDescription,
+          content: seo.description,
+        },
+        {
+          property: `og:site_name`,
+          content: seo.siteName,
         },
         {
           property: `og:title`,
-          content: title,
+          content: seo.title,
         },
         {
           property: `og:description`,
-          content: metaDescription,
+          content: seo.description,
         },
         {
           property: `og:type`,
-          content: `website`,
+          content: seo.type,
         },
         {
+          property: `og:url`,
+          content: seo.url,
+        },
+        {
+          property: `og:locale`,
+          content: seo.lang,
+        },
+        {
+          property: `og:image`,
+          content: seo.image,
+        },
+        {
+          property: `og:image:width`,
+          content: seo.imageWidth,
+        },
+        {
+          property: `og:image:height`,
+          content: seo.imageHeight,
+        },
+        outputIfSet(article && seo.publishedTime, {
+          property: `article:published_time`,
+          content: seo.publishedTime,
+        }),
+        outputIfSet(article && seo.modifiedTime, {
+          property: `article:modified_time`,
+          content: seo.modifiedTime,
+        }),
+        outputIfSet(article && seo.tags, {
+          property: `article:tags`,
+          content: seo.tags,
+        }),
+        {
           name: `twitter:card`,
-          content: `summary`,
+          content: `summary_large_image`,
         },
         {
           name: `twitter:creator`,
@@ -62,21 +142,27 @@ const SEO = (props) => {
         },
         {
           name: `twitter:title`,
-          content: title,
+          content: seo.title,
         },
         {
           name: `twitter:description`,
-          content: metaDescription,
+          content: seo.description,
+        },
+        {
+          name: `twitter:image`,
+          content: seo.image,
         },
       ].concat(meta)}
     >
-      <title>{pageTitle}</title>
+      <title>{pageDisplayTitle}</title>
+      <link rel="canonical" href={seo.url} />
     </Helmet>
   );
-};
+}
 
 SEO.defaultProps = {
-  lang: `en-GB`,
+  // If this prop is `undefined`, `siteConfig.language` will be used as a fallback.
+  lang: undefined,
   meta: [],
   description: ``,
 };

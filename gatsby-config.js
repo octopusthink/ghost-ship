@@ -125,14 +125,18 @@ if (config.matomoOptions && Object.keys(config.matomoOptions).length) {
 
 module.exports = {
   siteMetadata: {
-    title: config.siteTitle,
-    description: config.siteDescription,
     author: config.twitter,
-    siteUrl: config.siteUrl,
-    copyright: config.copyright,
-    blogTitle: config.blogTitle,
     blogDescription: config.blogDescription,
     blogSummary: config.blogSummary,
+    blogTitle: config.blogTitle,
+    copyright: config.copyright,
+    defaultImage: config.defaultImage,
+    description: config.siteDescription,
+    imageHeight: config.imageHeight,
+    imageWidth: config.imageWidth,
+    language: config.language,
+    siteUrl: config.siteUrl,
+    title: config.siteTitle,
   },
   plugins: [
     {
