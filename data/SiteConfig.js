@@ -24,6 +24,8 @@ const config = {
   copyright: `Copyright © ${new Date().getFullYear()}. Your name here.`,
   // Fallback image used when sharing to social sites.
   defaultImage: '/og-images/default.png',
+  imageHeight: '630',
+  imageWidth: '1200',
 
   /* ------------ Blog Settings ------------ */
   blogTitle: 'Our Blog',

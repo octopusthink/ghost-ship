@@ -41,6 +41,8 @@ function SEO(props) {
             author
             defaultImage
             description
+            imageHeight
+            imageWidth
             language
             siteUrl
             title
@@ -61,6 +63,8 @@ function SEO(props) {
     description: description || site.siteMetadata.description,
     lang: lang || site.siteMetadata.language,
     image: `${site.siteMetadata.siteUrl}${image || site.siteMetadata.defaultImage}`,
+    imageHeight: site.siteMetadata.imageHeight,
+    imageWidth: site.siteMetadata.imageWidth,
     modifiedTime,
     publishedTime,
     siteName: site.siteMetadata.title,
@@ -108,6 +112,14 @@ function SEO(props) {
           property: `og:image`,
           content: seo.image,
         },
+        {
+          property: `og:image:width`,
+          content: seo.imageWidth,
+        },
+        {
+          property: `og:image:height`,
+          content: seo.imageHeight,
+        },
         outputIfSet(article && seo.publishedTime, {
           property: `article:published_time`,
           content: seo.publishedTime,
@@ -122,7 +134,7 @@ function SEO(props) {
         }),
         {
           name: `twitter:card`,
-          content: `summary`,
+          content: `summary_large_image`,
         },
         {
           name: `twitter:creator`,
