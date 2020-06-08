@@ -1,6 +1,17 @@
 import { css } from '@emotion/core';
 import { Paragraph } from '@octopusthink/nautilus';
 import React from 'react';
+import { useStaticQuery, graphql } from 'gatsby';
+
+const { site } = useStaticQuery(graphql`
+  query {
+    site {
+      siteMetadata {
+        copyright
+      }
+    }
+  }
+`);
 
 import config from 'data/SiteConfig';
 
