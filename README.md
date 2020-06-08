@@ -26,17 +26,28 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
 
     Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)!
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
-
 
 ## SEO
 
+### Page frontmatter
+
+There are a few SEO-specific properties you can set for any page or other content type:
+
+`metaDescription:` For setting the meta description.
+`thumbnail`: For setting a thumbnail image to appear when shared on social media.
+`canonical`: For setting the canonical url.
+
+These are all optional—don't use them if you don't need them!
+
+
 ### Thumbnail images
 
-For each page, you can set a custom thumbnail that will be used when sharing on Twitter, Facebook, etc.
+For each page, you can set a custom thumbnail that will be used when sharing on Twitter, Facebook, etc. If no thumbnail is set, the page will use the fallback thumbnail, as defined in your `SiteConfig.js`.
 
-We recommend using the size 630x1200 for maximum compatibility.
+We recommend using the size 630x1200 for maximum compatibility. These images should be stored in the `static/` directory.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
 
 
