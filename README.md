@@ -29,3 +29,14 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) file for details.
+
+
+## SEO
+
+### Thumbnail images
+
+For each page, you can set a custom thumbnail that will be used when sharing on Twitter, Facebook, etc.
+
+We recommend using the size 630x1200 for maximum compatibility.
+
+

@@ -132,6 +132,8 @@ module.exports = {
     copyright: config.copyright,
     defaultImage: config.defaultImage,
     description: config.siteDescription,
+    imageHeight: config.imageHeight,
+    imageWidth: config.imageWidth,
     language: config.language,
     siteUrl: config.siteUrl,
     title: config.siteTitle,
