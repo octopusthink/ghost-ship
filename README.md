@@ -24,7 +24,54 @@ Create a Gatsby site that includes blog posts, Markdown pages, and [Nautilus](ht
 
 3.  **Open the source code and start editing!**
 
-    Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)!
+    Your site is now running at [`http://localhost:8000/`](http://localhost:8000/)! 
+
+
+## 🚧 Build your site
+
+Here are a few things we recommend starting with:
+
+### Configure your settings.
+
+Set your site's configurations by editing your `data/SiteConfig.js` file.
+
+When you make changes, you'll need to restart the server to see these changes reflected.
+
+### Add logos and favicons.
+
+### Create a custom theme.
+
+To add a custom theme, first create a [Nautilus](https://nautilus.octopusthink.com/) theme file. (Documentation for themeing is coming soon, but for now copying the [default theme](https://github.com/octopusthink/nautilus/blob/master/src/themes/nautilus/index.js) file will do the trick, and modify values as needed.) You can put it anywhere you like, but we recommend `data/theme.js`. 
+
+Then, open up `components/NautilusWrapper`, import the theme, and pass it as a prop to Nautilus:
+
+```jsx
+import theme from 'data/theme';
+
+<Nautilus theme={theme}>
+```
+
+
+
+### Configure content types.
+
+### Add some content.
+
+### Modify your CSS.
+
+### Launch your site!
+
+## ✨What's next?
+
+### Using the design system
+
+octopusthink.com uses the [Nautilus](https://nautilus.octopusthink.com) design system under the hood. Since Nautilus is still very much under development, it's pulling from the latest changes made to the `master` GitHub branch, rather than the published version.
+
+To pull the latest changes, uninstall and reinstall the Nautilus dependency:
+
+```bash
+npm uninstall nautilus && npm install --save octopusthink/nautilus
+```
 
 
 ## SEO
