@@ -38,7 +38,7 @@
     "gatsby-plugin-feed": "^2.3.15",
     "gatsby-plugin-layout": "^1.1.10",
     "gatsby-plugin-matomo": "^0.7.2",
-    "gatsby-plugin-mdx": "^1.0.53",
+    "gatsby-plugin-mdx": "^2.14.1",
     "gatsby-plugin-react-helmet": "^3.1.10",
     "gatsby-plugin-react-svg": "^2.1.2",
     "gatsby-plugin-sharp": "^2.2.12",
